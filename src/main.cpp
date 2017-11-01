@@ -52,7 +52,7 @@ int main(int argc, const char **argv)
     // Parse commandline arguments
     if (argc != 11)
     {
-        fprintf(stderr, "Usage: graph_viewer cuda|seq max_iterations num_snaps sg|wg scale gravity exact|approximate edgelist_path out_path test|image\n");
+        fprintf(stderr, "Usage: graph_viewer cuda|seq max_iterations num_snaps sg|wg scale gravity exact|approximate edgelist_path out_path test|image label_path color_path\n");
         exit(EXIT_FAILURE);
     }
 
@@ -69,6 +69,8 @@ int main(int argc, const char **argv)
     const int framesize = 10000;
     const float w = framesize;
     const float h = framesize;
+    const char *label_path = argv[11];
+    const char *color_path = argv[12];
 
     if(cuda_requested and not approximate)
     {
@@ -103,6 +105,45 @@ int main(int argc, const char **argv)
     RPGraph::UGraph graph = RPGraph::UGraph(edgelist_path);
     printf("done.\n");
     printf("    fetched %d nodes and %d edges.\n", graph.num_nodes(), graph.num_edges());
+
+    std::unordered_map<nid_t, int> label_map;
+    std::unordered_map<int, std::vector<int> > color_palettes;
+    {
+        std::fstream label_file(label_path, std::ifstream::in);
+
+        std::string line;
+        while(std::getline(label_file, line))
+        {
+            // Skip any comments
+            if(line[0] == '#') continue;
+
+            // Read source and target from file
+            nid_t _node_id;
+            int _label_id;
+            std::istringstream(line) >> _node_id >> _label_id;
+
+            label_map[_node_id] = _label_id;
+        }
+        label_file.close();
+    }
+    {
+        std::fstream color_file(color_path, std::ifstream::in);
+
+        std::string line;
+        while(std::getline(color_file, line))
+        {
+            // Skip any comments
+            if(line[0] == '#') continue;
+
+            // Read source and target from file
+            int _label_id;
+            int _r, _g, _b;
+            std::istringstream(line) >> _label_id >> _r >> _g >> _b;
+
+            color_palettes[_label_id] = std::vector<int>({_r, _g, _b});
+        }
+        label_file.close();
+    }
 
     // Create the GraphLayout and ForceAtlas2 objects.
     RPGraph::GraphLayout layout(graph, w, h);
