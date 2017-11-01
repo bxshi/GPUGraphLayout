@@ -159,7 +159,9 @@ namespace RPGraph
         setY(node_id, c.y);
     }
 
-    void GraphLayout::writeToPNG(const int width, const int height, const char *path)
+    void GraphLayout::writeToPNG(const int width, const int height, const char *path,
+                                 const std::unordered_map<uint32_t, int>& label_map,
+                                 const std::unordered_map<int, std::vector<int> >& color_palettes)
     {
         const float xRange = getXRange();
         const float yRange = getYRange();
@@ -179,19 +181,24 @@ namespace RPGraph
         // Write to file.
         pngwriter layout_png(width, height, 0, path);
         layout_png.invert(); // set bg. to white
-        
+
         for (nid_t n1 = 0; n1 < graph.num_nodes(); ++n1)
         {
             // Plot node,
-            layout_png.filledcircle_blend((getX(n1) - minX)*xScale,
-                                          (getY(n1) - minY)*yScale,
-                                          3, node_opacity, 0, 0, 0);
-            for (nid_t n2 : graph.neighbors_with_geq_id(n1)) {
-                // ... and edge.
-                layout_png.line_blend((getX(n1) - minX)*xScale, (getY(n1) - minY)*yScale,
-                                      (getX(n2) - minX)*xScale, (getY(n2) - minY)*yScale,
-                                      edge_opacity, 0, 0, 0);
+            auto label_it = label_map.find(n1);
+            if (label_it != label_map.end()) {
+                vector<int>& color = color_palettes[*label_it.second];
+                layout_png.filledcircle_blend((getX(n1) - minX)*xScale,
+                                              (getY(n1) - minY)*yScale,
+                                              3, node_opacity, color[0], color[1], color[2]);
             }
+
+//            for (nid_t n2 : graph.neighbors_with_geq_id(n1)) {
+//                 ... and edge.
+//                layout_png.line_blend((getX(n1) - minX)*xScale, (getY(n1) - minY)*yScale,
+//                                      (getX(n2) - minX)*xScale, (getY(n2) - minY)*yScale,
+//                                      edge_opacity, 0, 0, 0);
+//            }
         }
         // Write it to disk.
         layout_png.write_png();

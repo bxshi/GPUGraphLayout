@@ -59,7 +59,8 @@ namespace RPGraph
         void setX(nid_t node_id, float x_value), setY(nid_t node_id, float y_value);
         void moveNode(nid_t, Real2DVector v);
         void setCoordinates(nid_t node_id, Coordinate c);
-        void writeToPNG(const int width, const int height, const char *path);
+        void writeToPNG(const int width, const int height, const char *path,
+                        const std::unordered_map<nid_t, int>& label_map, const std::unordered_map<int, std::vector<int> >& color_palettes);
 
     };
 }
