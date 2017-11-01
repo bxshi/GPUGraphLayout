@@ -187,7 +187,7 @@ namespace RPGraph
             // Plot node,
             auto label_it = label_map.find(n1);
             if (label_it != label_map.end()) {
-                std::vector<int>& color = color_palettes[*label_it.second];
+                std::vector<int>& color = color_palettes[label_it->second];
                 layout_png.filledcircle_blend((getX(n1) - minX)*xScale,
                                               (getY(n1) - minY)*yScale,
                                               3, node_opacity, color[0], color[1], color[2]);
